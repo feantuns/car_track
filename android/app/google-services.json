@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "709451773784",
+    "firebase_url": "https://car-track-c093f.firebaseio.com",
+    "project_id": "car-track-c093f",
+    "storage_bucket": "car-track-c093f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709451773784:android:025740945271e044e1d72d",
+        "android_client_info": {
+          "package_name": "com.example.car_track"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "709451773784-n7bukqc626nskhrtk2ldme4s3ere4mqq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBef5uzHt7x1ldiv1tDyK55LLu7rRXidsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "709451773784-n7bukqc626nskhrtk2ldme4s3ere4mqq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
