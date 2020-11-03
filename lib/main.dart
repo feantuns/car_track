@@ -6,6 +6,7 @@ import 'package:car_track/screens/login.dart';
 import 'package:car_track/screens/new_car/new_car_1.dart';
 import 'package:car_track/screens/new_car/new_car_2.dart';
 import 'package:car_track/screens/new_car/new_car_3.dart';
+import 'package:car_track/screens/new_car/new_car_congrats.dart';
 import 'package:car_track/screens/new_car/new_car_details.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -31,6 +32,7 @@ class CarTrack extends StatelessWidget {
     return StoreProvider<AppState>(
       store: store,
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Car Track',
         theme: ThemeData(
           primarySwatch: Colors.deepPurple,
@@ -52,6 +54,9 @@ class CarTrack extends StatelessWidget {
           },
           '/new-car-details': (BuildContext context) {
             return new NewCarDetailsScreen();
+          },
+          '/new-car-congrats': (BuildContext context) {
+            return new NewCarCongratsScreen();
           }
         },
       ),

@@ -71,17 +71,14 @@ class NewCar3Screen extends StatelessWidget {
                   right: 16,
                   child: RaisedButton(
                     onPressed: () {
-                      if (value != '') {
-                        viewModel.updateNewCar(new Car(
-                            maisUsado: null,
-                            marca: viewModel.novoCarro.marca,
-                            modelo: viewModel.novoCarro.modelo,
-                            nome: value));
-                      } else {
-                        final snackBar =
-                            SnackBar(content: Text('Preencha o campo!'));
-                        Scaffold.of(context).showSnackBar(snackBar);
+                      if (value == "") {
+                        value = viewModel.novoCarro.modelo;
                       }
+                      viewModel.updateNewCar(new Car(
+                          maisUsado: null,
+                          marca: viewModel.novoCarro.marca,
+                          modelo: viewModel.novoCarro.modelo,
+                          nome: value));
                     },
                     color: Colors.deepPurpleAccent[700],
                     padding: EdgeInsets.fromLTRB(13, 12, 13, 12),

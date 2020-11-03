@@ -1,6 +1,5 @@
 import 'package:car_track/models/car.dart';
 import 'package:car_track/actions/actions.dart';
-import 'package:car_track/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:car_track/models/app_state.dart';
@@ -28,11 +27,9 @@ class _NewCarDetailsState extends State<NewCarDetailsScreen> {
     return new StoreConnector<AppState, NewCarDetailsViewModel>(
         builder: (context, NewCarDetailsViewModel viewModel) {
       if (viewModel.createdNewCar != null && viewModel.createdNewCar) {
-        Navigator.push(
+        Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(),
-          ),
+          '/new-car-congrats',
         );
       }
 
@@ -114,7 +111,7 @@ class _NewCarDetailsState extends State<NewCarDetailsScreen> {
                         CheckboxListTile(
                           contentPadding: EdgeInsets.all(0),
                           dense: true,
-                          title: Text("Esse é o carro que mais uso",
+                          title: Text("Este é o carro que mais uso",
                               style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w300,
@@ -154,9 +151,14 @@ class _NewCarDetailsState extends State<NewCarDetailsScreen> {
                                 color: Colors.white)),
                         SizedBox(width: 8),
                         (viewModel.isLoading != null && viewModel.isLoading)
-                            ? CircularProgressIndicator(
-                                valueColor: new AlwaysStoppedAnimation<Color>(
-                                    Colors.white),
+                            ? Container(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: new AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
                               )
                             : Icon(
                                 Icons.chevron_right,

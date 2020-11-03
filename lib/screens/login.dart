@@ -18,14 +18,10 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, LoginScreenViewModel>(
         builder: (context, LoginScreenViewModel viewModel) {
-      print(viewModel.user);
       if (viewModel.user != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(),
-          ),
-        );
+        Future.delayed(Duration.zero, () {
+          Navigator.pushNamed(context, '/');
+        });
       }
 
       return new Scaffold(
