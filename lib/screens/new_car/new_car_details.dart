@@ -1,5 +1,8 @@
+import 'package:car_track/components/box_title.dart';
 import 'package:car_track/models/car.dart';
 import 'package:car_track/actions/actions.dart';
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:car_track/models/app_state.dart';
@@ -9,10 +12,8 @@ class NewCarDetailsViewModel {
   final Function updateNewCar;
   final Car novoCarro;
   final bool isLoading;
-  final bool createdNewCar;
 
-  NewCarDetailsViewModel(
-      {this.updateNewCar, this.novoCarro, this.isLoading, this.createdNewCar});
+  NewCarDetailsViewModel({this.updateNewCar, this.novoCarro, this.isLoading});
 }
 
 class NewCarDetailsScreen extends StatefulWidget {
@@ -20,19 +21,13 @@ class NewCarDetailsScreen extends StatefulWidget {
 }
 
 class _NewCarDetailsState extends State<NewCarDetailsScreen> {
+  final NavigationService _navigationService = locator<NavigationService>();
   bool checked = true;
 
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, NewCarDetailsViewModel>(
         builder: (context, NewCarDetailsViewModel viewModel) {
-      if (viewModel.createdNewCar != null && viewModel.createdNewCar) {
-        Navigator.pushNamed(
-          context,
-          '/new-car-congrats',
-        );
-      }
-
       return new Scaffold(
           body: Builder(
         builder: (context) => Container(
@@ -50,19 +45,16 @@ class _NewCarDetailsState extends State<NewCarDetailsScreen> {
                   top: 32,
                   left: 8,
                   child: IconButton(
-                    icon: Icon(
-                      Icons.chevron_left,
-                      color: Colors.grey[700],
-                      size: 32.0,
-                      semanticLabel: 'Voltar',
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
+                      icon: Icon(
+                        Icons.chevron_left,
+                        color: Colors.grey[700],
+                        size: 32.0,
+                        semanticLabel: 'Voltar',
+                      ),
+                      onPressed: () => _navigationService.goBack()),
                 ),
                 Transform.translate(
-                  offset: const Offset(0.0, 40.0),
+                  offset: const Offset(0.0, 80.0),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Column(
@@ -72,40 +64,18 @@ class _NewCarDetailsState extends State<NewCarDetailsScreen> {
                         Text(viewModel.novoCarro.nome,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                fontSize: 80,
+                                fontSize: 60,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.grey[700])),
                         SizedBox(height: 8),
-                        Text('Marca',
-                            style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w300,
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey[700])),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: EdgeInsets.only(left: 8),
-                          child: Text(viewModel.novoCarro.marca,
-                              style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.grey[700])),
+                        BoxTitle(
+                          title: 'Marca',
+                          subtitle: viewModel.novoCarro.marca,
                         ),
                         SizedBox(height: 24),
-                        Text('Modelo',
-                            style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w300,
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey[700])),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: EdgeInsets.only(left: 8),
-                          child: Text(viewModel.novoCarro.modelo,
-                              style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.grey[700])),
+                        BoxTitle(
+                          title: 'Modelo',
+                          subtitle: viewModel.novoCarro.modelo,
                         ),
                         SizedBox(height: 8),
                         CheckboxListTile(
@@ -179,7 +149,6 @@ class _NewCarDetailsState extends State<NewCarDetailsScreen> {
         },
         novoCarro: store.state.novoCarro,
         isLoading: store.state.isLoadingNewCar,
-        createdNewCar: store.state.createdNewCar,
       );
     });
   }

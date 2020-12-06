@@ -1,6 +1,7 @@
 import 'package:car_track/components/title_carousel.dart';
-import 'package:car_track/screens/follow_piece/follow_piece.dart';
-import 'package:car_track/screens/followed_piece_details.dart';
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +18,13 @@ class FollowedPiecesViewModel {
 }
 
 class FollowedPieces extends StatelessWidget {
-  FollowedPieces({Key key, this.onlyNeedingRepair}) : super(key: key);
+  FollowedPieces(
+      {Key key, this.onlyNeedingRepair, this.onlyMostUsedCar = false})
+      : super(key: key);
 
   final bool onlyNeedingRepair;
+  final bool onlyMostUsedCar;
+  final NavigationService _navigationService = locator<NavigationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +34,10 @@ class FollowedPieces extends StatelessWidget {
           .collection('users/' + viewModel.user.uid + '/followedPieces')
           .where("precisaManutencao", isEqualTo: onlyNeedingRepair);
 
-      if (viewModel.carId != null) {
-        pieces = pieces.where("carId", isEqualTo: viewModel.carId);
-      } else {
+      if (onlyMostUsedCar) {
         pieces = pieces.where("carId", isEqualTo: viewModel.mostUsedCarId);
+      } else {
+        pieces = pieces.where("carId", isEqualTo: viewModel.carId);
       }
 
       return StreamBuilder<QuerySnapshot>(
@@ -40,30 +45,27 @@ class FollowedPieces extends StatelessWidget {
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container(
-                  color: Colors.white,
-                  child: Center(child: CircularProgressIndicator()));
+              return Text(
+                '',
+              );
             }
 
             var data = snapshot.data.docs;
 
             if (data.length > 0) {
               return Container(
-                margin: EdgeInsets.only(bottom: 24),
+                margin: EdgeInsets.only(bottom: 16),
                 child: TitleCarousel(
-                    scaleImg: 2,
+                    scaleImg: 3,
+                    showDot: onlyNeedingRepair ? true : false,
                     items: snapshot.data.docs,
                     title: onlyNeedingRepair
-                        ? 'Tá na hora de trocar'
+                        ? 'Está na hora de trocar'
                         : 'Peças em acompanhamento',
                     imagePath: 'assets/piece.png',
-                    onTap: (id) => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => FollowedPieceDetailsScreen(
-                                    itemId: id,
-                                  )),
-                        )),
+                    onTap: (id) => _navigationService.navigateTo(
+                        routes.FollowedPieceDetailsRoute,
+                        arguments: id)),
               );
             }
 

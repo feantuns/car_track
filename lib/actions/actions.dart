@@ -6,10 +6,14 @@ class InitAction {}
 
 class SignInUserAction {}
 
+class SignOutUserAction {}
+
 class UserLoadedAction {
   final User firebaseUser;
   UserLoadedAction(this.firebaseUser);
 }
+
+class RemoveUserAction {}
 
 class UpdateNewCarAction {
   final Car novoCarro;
@@ -48,7 +52,14 @@ class SuccesfullyFollowedPieceAction {}
 
 class ResetStateFollowPieceAction {}
 
-class GetPiecesNeedingRepairAction {}
+class GetMostUsedCarAction {}
+
+class GetAllowNotificationAction {}
+
+class SetAllowNotificationAction {
+  final bool allowNotification;
+  SetAllowNotificationAction(this.allowNotification);
+}
 
 class GetFollowedPieceAction {
   final String id;

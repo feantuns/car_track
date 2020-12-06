@@ -1,34 +1,63 @@
 import 'package:car_track/middlewares/middleware.dart';
 import 'package:car_track/actions/actions.dart';
 import 'package:car_track/reducers/reducers.dart';
-import 'package:car_track/screens/home.dart';
-import 'package:car_track/screens/login.dart';
-import 'package:car_track/screens/new_car/new_car_1.dart';
-import 'package:car_track/screens/new_car/new_car_2.dart';
-import 'package:car_track/screens/new_car/new_car_3.dart';
-import 'package:car_track/screens/new_car/new_car_congrats.dart';
-import 'package:car_track/screens/new_car/new_car_details.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
-
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/locator.dart';
+import 'package:car_track/router.dart' as router;
+import 'package:car_track/services/navigation_service.dart';
 import 'package:car_track/models/app_state.dart';
 
 void main() async {
+  setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(CarTrack());
 }
 
-class CarTrack extends StatelessWidget {
+class CarTrack extends StatefulWidget {
+  @override
+  _CarTrackState createState() => new _CarTrackState();
+}
+
+class _CarTrackState extends State<CarTrack> {
   final Store store = new Store<AppState>(stateReducer,
       initialState: new AppState.initial(),
       middleware: [firebaseMiddleware].toList());
 
+  final NavigationService _navigationService = locator<NavigationService>();
+
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
+  void _navigateToCarDetail(Map<String, dynamic> message) {
+    final String carId = message['data']['carId'];
+    print(message);
+    print(carId);
+    store.dispatch(new SelectedCarIdAction(carId));
+    _navigationService.navigateTo(routes.CarDetailsRoute);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _firebaseMessaging.configure(
+      onLaunch: (Map<String, dynamic> message) async {
+        _navigateToCarDetail(message);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        _navigateToCarDetail(message);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    store.dispatch(new InitAction());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => store.dispatch(new InitAction()));
     return StoreProvider<AppState>(
       store: store,
       child: MaterialApp(
@@ -37,28 +66,9 @@ class CarTrack extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.deepPurple,
         ),
-        routes: <String, WidgetBuilder>{
-          '/': (BuildContext context) {
-            return store.state.firebaseUser == null
-                ? new LoginScreen()
-                : new HomeScreen();
-          },
-          '/new-car-1': (BuildContext context) {
-            return new NewCar1Screen();
-          },
-          '/new-car-2': (BuildContext context) {
-            return new NewCar2Screen();
-          },
-          '/new-car-3': (BuildContext context) {
-            return new NewCar3Screen();
-          },
-          '/new-car-details': (BuildContext context) {
-            return new NewCarDetailsScreen();
-          },
-          '/new-car-congrats': (BuildContext context) {
-            return new NewCarCongratsScreen();
-          }
-        },
+        navigatorKey: locator<NavigationService>().navigatorKey,
+        onGenerateRoute: router.generateRoute,
+        initialRoute: routes.LoginRoute,
       ),
     );
   }

@@ -1,6 +1,9 @@
 import 'package:car_track/components/box_title.dart';
 import 'package:car_track/components/followed_pieces.dart';
 import 'package:car_track/components/pieces.dart';
+import 'package:car_track/locator.dart';
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/services/navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +19,8 @@ class CarDetailsViewModel {
 }
 
 class CarDetailsScreen extends StatelessWidget {
+  final NavigationService _navigationService = locator<NavigationService>();
+
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, CarDetailsViewModel>(
@@ -50,7 +55,7 @@ class CarDetailsScreen extends StatelessWidget {
                             child: Image(
                                 image: AssetImage("assets/half_car_big.png")))),
                     Transform.translate(
-                      offset: const Offset(0.0, -60.0),
+                      offset: const Offset(0.0, -50.0),
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
                         child: Column(
@@ -61,7 +66,7 @@ class CarDetailsScreen extends StatelessWidget {
                             Text(data['nome'],
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                    fontSize: 80,
+                                    fontSize: 60,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.grey[700])),
                             SizedBox(height: 8),
@@ -100,7 +105,7 @@ class CarDetailsScreen extends StatelessWidget {
                             SizedBox(height: 24),
                             ConstrainedBox(
                               constraints:
-                                  BoxConstraints(minHeight: 0, maxHeight: 250),
+                                  BoxConstraints(minHeight: 0, maxHeight: 170),
                               child: Container(
                                 child: FollowedPieces(
                                   onlyNeedingRepair: true,
@@ -109,7 +114,7 @@ class CarDetailsScreen extends StatelessWidget {
                             ),
                             ConstrainedBox(
                               constraints:
-                                  BoxConstraints(minHeight: 0, maxHeight: 250),
+                                  BoxConstraints(minHeight: 0, maxHeight: 170),
                               child: Container(
                                 child: FollowedPieces(
                                   onlyNeedingRepair: false,
@@ -118,7 +123,7 @@ class CarDetailsScreen extends StatelessWidget {
                             ),
                             ConstrainedBox(
                               constraints:
-                                  BoxConstraints(minHeight: 0, maxHeight: 220),
+                                  BoxConstraints(minHeight: 0, maxHeight: 170),
                               child: Container(
                                 child: Pieces(),
                               ),
@@ -138,9 +143,8 @@ class CarDetailsScreen extends StatelessWidget {
                         size: 32.0,
                         semanticLabel: 'Voltar',
                       ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/');
-                      },
+                      onPressed: () =>
+                          _navigationService.navigateTo(routes.HomeRoute),
                     ),
                   ),
                 ],

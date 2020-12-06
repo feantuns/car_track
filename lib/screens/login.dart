@@ -9,8 +9,9 @@ import 'package:car_track/models/app_state.dart';
 class LoginScreenViewModel {
   final Function signInUser;
   final User user;
+  final bool logged;
 
-  LoginScreenViewModel({this.signInUser, this.user});
+  LoginScreenViewModel({this.signInUser, this.user, this.logged});
 }
 
 class LoginScreen extends StatelessWidget {
@@ -18,12 +19,6 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, LoginScreenViewModel>(
         builder: (context, LoginScreenViewModel viewModel) {
-      if (viewModel.user != null) {
-        Future.delayed(Duration.zero, () {
-          Navigator.pushNamed(context, '/');
-        });
-      }
-
       return new Scaffold(
         body: Container(
           color: Colors.white,
@@ -56,17 +51,17 @@ class LoginScreen extends StatelessWidget {
                                       color: Colors.black.withOpacity(0.6),
                                       fontSize: 53),
                                   textAlign: TextAlign.left),
-                              SizedBox(height: 5),
+                              SizedBox(height: 4),
                               Text("Entre com uma conta do Google",
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.6),
-                                      fontSize: 15),
+                                      fontSize: 18),
                                   textAlign: TextAlign.left),
                             ],
                           ))
                     ]),
               ),
-              SizedBox(height: 50),
+              SizedBox(height: 30),
               _signInButton(context, viewModel.signInUser),
             ],
           ),
@@ -75,6 +70,7 @@ class LoginScreen extends StatelessWidget {
     }, converter: (store) {
       return new LoginScreenViewModel(
           signInUser: () => store.dispatch(new SignInUserAction()),
+          logged: store.state.logged,
           user: store.state.firebaseUser);
     });
   }
@@ -98,7 +94,7 @@ class LoginScreen extends StatelessWidget {
               child: Text(
                 'Entrar com o Google',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   color: Colors.grey,
                 ),
               ),

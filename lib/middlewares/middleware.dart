@@ -1,6 +1,9 @@
 import 'package:car_track/actions/actions.dart';
 import 'package:car_track/models/app_state.dart';
 import 'package:car_track/models/follow_piece.dart';
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:redux/redux.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,64 +15,64 @@ final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
 firebaseMiddleware(Store<AppState> store, action, NextDispatcher next) async {
   final User currentUser = _auth.currentUser;
+  final NavigationService _navigationService = locator<NavigationService>();
 
   if (action is InitAction) {
     if (currentUser != null) {
       store.dispatch(new UserLoadedAction(currentUser));
-      store.dispatch(new GetPiecesNeedingRepairAction());
+      store.dispatch(new GetMostUsedCarAction());
+      store.dispatch(new GetAllowNotificationAction());
+      _navigationService.navigateTo(routes.HomeRoute);
     }
   }
   if (action is SignInUserAction) {
-    if (store.state.firebaseUser == null) {
-      final User currentUser = _auth.currentUser;
+    if (!store.state.logged) {
+      final GoogleSignInAccount googleSignInAccount =
+          await googleSignIn.signIn();
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
 
-      if (currentUser != null) {
-        store.dispatch(new UserLoadedAction(currentUser));
-      } else {
-        final GoogleSignInAccount googleSignInAccount =
-            await googleSignIn.signIn();
-        final GoogleSignInAuthentication googleSignInAuthentication =
-            await googleSignInAccount.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
 
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleSignInAuthentication.accessToken,
-          idToken: googleSignInAuthentication.idToken,
-        );
+      final UserCredential authResult =
+          await _auth.signInWithCredential(credential);
+      final User user = authResult.user;
 
-        final UserCredential authResult =
-            await _auth.signInWithCredential(credential);
-        final User user = authResult.user;
+      store.dispatch(new UserLoadedAction(user));
 
-        assert(!user.isAnonymous);
-        assert(await user.getIdToken() != null);
-
-        final User currentUser = _auth.currentUser;
-        assert(user.uid == currentUser.uid);
-
-        store.dispatch(new UserLoadedAction(user));
-      }
+      _navigationService.navigateTo(routes.HomeRoute);
     }
+  }
+
+  if (action is SignOutUserAction) {
+    await googleSignIn.signOut();
+    await _auth.signOut();
+    store.dispatch(new RemoveUserAction());
+    _navigationService.navigateTo(routes.LoginRoute);
   }
 
   if (action is CreateNewCarAction) {
     store.dispatch(new ShowNewCarLoadingAction());
 
-    CollectionReference userCars = FirebaseFirestore.instance
-        .collection('users/' + currentUser.uid + '/cars');
+    CollectionReference userCars =
+        firestore.collection('users/' + currentUser.uid + '/cars');
 
     userCars.add(action.novoCarro.toJson()).then((value) {
-      print("Car Added");
       store.dispatch(new SuccesfullyCreatedCarAction());
+      store.dispatch(new GetMostUsedCarAction());
+      _navigationService.navigateTo(routes.NewCarCongratsRoute);
     }).catchError((error) => print("Error: $error"));
   }
 
   if (action is FollowPieceAction) {
     store.dispatch(new ShowFollowPieceLoadingAction());
 
-    CollectionReference followedPieces = FirebaseFirestore.instance
-        .collection('users/' + currentUser.uid + '/followedPieces');
-    CollectionReference pieces =
-        FirebaseFirestore.instance.collection('pieces');
+    CollectionReference followedPieces =
+        firestore.collection('users/' + currentUser.uid + '/followedPieces');
+    CollectionReference pieces = firestore.collection('pieces');
 
     var piece = await pieces.doc(action.followPiece.pieceId).get();
 
@@ -87,33 +90,38 @@ firebaseMiddleware(Store<AppState> store, action, NextDispatcher next) async {
         .copyWith(nome: pieceName, precisaManutencao: precisaManutencao);
 
     followedPieces.add(updatedPieceToFollow.toJson()).then((value) {
-      print("Piece Followed");
       store.dispatch(new SuccesfullyFollowedPieceAction());
+      _navigationService.navigateTo(routes.FollowPieceCongratsRoute);
     }).catchError((error) => print("Error: $error"));
   }
 
-  if (action is GetPiecesNeedingRepairAction) {
-    var mostUsedCarRef = FirebaseFirestore.instance
+  if (action is GetMostUsedCarAction) {
+    var mostUsedCarRef = firestore
         .collection('users/' + currentUser.uid + '/cars')
         .where("maisUsado", isEqualTo: true);
 
     var mostUsedCar = await mostUsedCarRef.get();
 
     if (mostUsedCar.docs.length > 0) {
-      var piecesNeedingRepairRef = FirebaseFirestore.instance
-          .collection('users/' + currentUser.uid + '/followedPieces')
-          .where("carId", isEqualTo: mostUsedCar.docs[0].id)
-          .where("precisaManutencao", isEqualTo: true);
-
       store.dispatch(new MostUsedCarIdAction(mostUsedCar.docs[0].id));
-
-      var piecesNeedingRepair = await piecesNeedingRepairRef.get();
-
-      print(piecesNeedingRepair.docs);
-
-      store.dispatch(
-          new UpdatePiecesNeedingRepairAction(piecesNeedingRepair.docs));
     }
   }
+
+  if (action is GetAllowNotificationAction) {
+    var tokenRef =
+        firestore.collection('users/' + currentUser.uid + '/info').doc('token');
+    bool allowNotification = false;
+
+    tokenRef.get().then((doc) {
+      if (doc.exists) {
+        allowNotification = true;
+      }
+
+      print(allowNotification);
+
+      store.dispatch(new SetAllowNotificationAction(allowNotification));
+    });
+  }
+
   next(action);
 }

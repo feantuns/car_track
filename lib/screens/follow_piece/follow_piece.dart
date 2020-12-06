@@ -1,6 +1,8 @@
 import 'package:car_track/actions/actions.dart';
 import 'package:car_track/models/follow_piece.dart';
-import 'package:car_track/screens/follow_piece/follow_piece_congrats.dart';
+import 'package:car_track/locator.dart';
+import 'package:car_track/push_notifications.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -10,15 +12,19 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 @immutable
 class FollowPieceViewModel {
   final Function followPieceAction;
+  final Function getAllowNotificationStatus;
   final FollowPiece followPiece;
   final String carId;
   final bool isLoading;
   final bool followedPiece;
+  final bool allowNotification;
 
   FollowPieceViewModel(
       {this.followPieceAction,
       this.followPiece,
       this.isLoading,
+      this.allowNotification,
+      this.getAllowNotificationStatus,
       this.followedPiece,
       this.carId});
 }
@@ -35,21 +41,53 @@ class _FollowPieceState extends State<FollowPieceScreen> {
   _FollowPieceState({this.pieceId});
 
   final String pieceId;
+  final NavigationService _navigationService = locator<NavigationService>();
+  final PushNotificationsManager push = new PushNotificationsManager();
 
   DateTime selectedDate;
+  bool allowNotificationLocal = false;
+  Function followPiece;
+  FollowPiece piece;
 
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, FollowPieceViewModel>(
         builder: (context, FollowPieceViewModel viewModel) {
-      if (viewModel.followedPiece != null && viewModel.followedPiece) {
-        Future.delayed(Duration.zero, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => FollowPieceCongratsScreen()),
-          );
-        });
+      Future<void> _showMyDialog() async {
+        return showDialog<void>(
+          context: context,
+          barrierDismissible: false, // user must tap button!
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Notificações'),
+              content: Text('Deseja receber notificações?'),
+              actions: <Widget>[
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      viewModel.followPieceAction(new FollowPiece(
+                          pieceId: pieceId,
+                          carId: viewModel.carId,
+                          ultimaManutencao: selectedDate));
+                    },
+                    child: Text('NÃO')),
+                TextButton(
+                  child: Text('SIM'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      allowNotificationLocal = true;
+                    });
+                    viewModel.followPieceAction(new FollowPiece(
+                        pieceId: pieceId,
+                        carId: viewModel.carId,
+                        ultimaManutencao: selectedDate));
+                  },
+                ),
+              ],
+            );
+          },
+        );
       }
 
       return new Scaffold(
@@ -118,9 +156,7 @@ class _FollowPieceState extends State<FollowPieceScreen> {
                       size: 32.0,
                       semanticLabel: 'Voltar',
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => _navigationService.goBack(),
                   ),
                 ),
                 Positioned(
@@ -129,10 +165,14 @@ class _FollowPieceState extends State<FollowPieceScreen> {
                   child: RaisedButton(
                     onPressed: () {
                       if (selectedDate != null) {
-                        viewModel.followPieceAction(new FollowPiece(
-                            pieceId: pieceId,
-                            carId: viewModel.carId,
-                            ultimaManutencao: selectedDate));
+                        if (viewModel.allowNotification) {
+                          viewModel.followPieceAction(new FollowPiece(
+                              pieceId: pieceId,
+                              carId: viewModel.carId,
+                              ultimaManutencao: selectedDate));
+                        } else {
+                          _showMyDialog();
+                        }
                       } else {
                         final snackBar =
                             SnackBar(content: Text('Preencha o campo!'));
@@ -173,13 +213,19 @@ class _FollowPieceState extends State<FollowPieceScreen> {
       ));
     }, converter: (store) {
       return new FollowPieceViewModel(
-        followPieceAction: (FollowPiece followPiece) {
-          store.dispatch(new FollowPieceAction(followPiece));
-        },
-        isLoading: store.state.isLoadingFollowPiece,
-        followedPiece: store.state.createdFollowPiece,
-        carId: store.state.selectedCarId,
-      );
+          followPieceAction: (FollowPiece followPiece) {
+            store.dispatch(new FollowPieceAction(followPiece));
+            if (allowNotificationLocal) {
+              push.init();
+              store.dispatch(new SetAllowNotificationAction(true));
+            }
+          },
+          isLoading: store.state.isLoadingFollowPiece,
+          followedPiece: store.state.createdFollowPiece,
+          carId: store.state.selectedCarId,
+          allowNotification: store.state.allowNotification,
+          getAllowNotificationStatus: () =>
+              store.dispatch(new GetAllowNotificationAction()));
     });
   }
 }

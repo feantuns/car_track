@@ -2,8 +2,9 @@ import 'package:car_track/actions/actions.dart';
 import 'package:car_track/components/followed_pieces.dart';
 import 'package:car_track/components/title_carousel.dart';
 import 'package:car_track/models/app_state.dart';
-import 'package:car_track/screens/car_details.dart';
-import 'package:car_track/screens/followed_piece_details.dart';
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,17 +15,22 @@ class HomeScreenViewModel {
   final User user;
   final Function onTapCar;
   final List piecesNeedingRepair;
+  final bool logged;
 
-  HomeScreenViewModel({this.user, this.onTapCar, this.piecesNeedingRepair});
+  HomeScreenViewModel(
+      {this.user, this.onTapCar, this.piecesNeedingRepair, this.logged});
 }
 
 class HomeScreen extends StatelessWidget {
+  final NavigationService _navigationService = locator<NavigationService>();
+
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, HomeScreenViewModel>(
         builder: (context, HomeScreenViewModel viewModel) {
-      CollectionReference cars = FirebaseFirestore.instance
-          .collection('users/' + viewModel.user.uid + '/cars');
+      var cars = FirebaseFirestore.instance
+          .collection('users/' + viewModel.user.uid + '/cars')
+          .orderBy('maisUsado', descending: true);
 
       // TODO fazer uma funcao que retorna o primeiro nome do usuario
       var userName = viewModel.user.displayName;
@@ -57,53 +63,48 @@ class HomeScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.max,
                         children: <Widget>[
                           Padding(
-                            padding: const EdgeInsets.only(
-                              left: 8.0,
-                            ),
-                            child: Text(
-                              'Olá, $userName',
-                              style: TextStyle(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black54),
+                            padding:
+                                const EdgeInsets.only(left: 8.0, right: 10.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Olá, $userName',
+                                  style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black54),
+                                ),
+                                IconButton(
+                                  onPressed: () => _navigationService
+                                      .navigateTo(routes.SettingsRoute),
+                                  icon: Icon(
+                                    Icons.settings_outlined,
+                                    color: Colors.grey[700],
+                                    size: 24.0,
+                                    semanticLabel: 'Configurações',
+                                  ),
+                                )
+                              ],
                             ),
                           ),
-                          // if (viewModel.piecesNeedingRepair != null &&
-                          //     viewModel.piecesNeedingRepair.length > 0) ...[
-                          //   SizedBox(height: 16),
-                          //   Container(
-                          //     child: new TitleCarousel(
-                          //         items: viewModel.piecesNeedingRepair,
-                          //         title: 'Tá na hora de trocar',
-                          //         scaleImg: 2,
-                          //         imagePath: 'assets/piece.png',
-                          //         onTap: (id) => Navigator.push(
-                          //               context,
-                          //               MaterialPageRoute(
-                          //                   builder: (context) =>
-                          //                       FollowedPieceDetailsScreen(
-                          //                         itemId: id,
-                          //                       )),
-                          //             )),
-                          //   ),
-                          // ],
-
+                          SizedBox(height: 8),
                           ConstrainedBox(
                             constraints:
-                                BoxConstraints(minHeight: 0, maxHeight: 250),
+                                BoxConstraints(minHeight: 0, maxHeight: 170),
                             child: Container(
-                              child: FollowedPieces(
-                                onlyNeedingRepair: true,
-                              ),
+                              child: new FollowedPieces(
+                                  onlyNeedingRepair: true,
+                                  onlyMostUsedCar: true),
                             ),
                           ),
-                          SizedBox(height: 16),
                           Container(
                             child: data.length > 0
                                 ? new TitleCarousel(
                                     items: snapshot.data.docs,
                                     title: 'Seus veículos',
-                                    scaleImg: 1.5,
+                                    scaleImg: 2,
                                     imagePath: 'assets/half_car.png',
                                     onTap: (id) => viewModel.onTapCar(id))
                                 : Text(
@@ -126,9 +127,8 @@ class HomeScreen extends StatelessWidget {
                           width: double.infinity,
                           child: InkWell(
                             splashColor: Colors.grey.withAlpha(30),
-                            onTap: () {
-                              Navigator.pushNamed(context, '/new-car-1');
-                            },
+                            onTap: () => _navigationService
+                                .navigateTo(routes.NewCar1Route),
                             child: Container(
                                 decoration: new BoxDecoration(
                                   image: new DecorationImage(
@@ -166,14 +166,10 @@ class HomeScreen extends StatelessWidget {
       return new HomeScreenViewModel(
           user: store.state.firebaseUser,
           piecesNeedingRepair: store.state.piecesNeedingRepair,
+          logged: store.state.logged,
           onTapCar: (String carId) {
             store.dispatch(new SelectedCarIdAction(carId));
-            Future.delayed(Duration.zero, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CarDetailsScreen()),
-              );
-            });
+            _navigationService.navigateTo(routes.CarDetailsRoute);
           });
     });
   }

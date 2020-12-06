@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 @immutable
 class AppState {
   final User firebaseUser;
+  final bool logged;
   final Car novoCarro;
   final bool isLoadingNewCar;
   final bool createdNewCar;
@@ -17,6 +18,7 @@ class AppState {
   final String mostUsedCarId;
   final List piecesNeedingRepair;
   final Object selectedFollowedPiece;
+  final bool allowNotification;
 
   AppState(
       {this.firebaseUser,
@@ -29,21 +31,24 @@ class AppState {
       this.selectedCarId,
       this.selectedFollowedPiece,
       this.mostUsedCarId,
+      this.logged,
+      this.allowNotification,
       this.piecesNeedingRepair});
 
   factory AppState.initial() => AppState(
-        firebaseUser: null,
-        novoCarro: null,
-        isLoadingNewCar: false,
-        createdNewCar: false,
-        followPiece: null,
-        isLoadingFollowPiece: false,
-        createdFollowPiece: false,
-        selectedCarId: null,
-        piecesNeedingRepair: null,
-        selectedFollowedPiece: null,
-        mostUsedCarId: null,
-      );
+      firebaseUser: null,
+      novoCarro: null,
+      isLoadingNewCar: false,
+      createdNewCar: false,
+      followPiece: null,
+      isLoadingFollowPiece: false,
+      createdFollowPiece: false,
+      selectedCarId: null,
+      piecesNeedingRepair: null,
+      selectedFollowedPiece: null,
+      mostUsedCarId: null,
+      logged: false,
+      allowNotification: false);
 
   AppState copyWith(
       {User firebaseUser,
@@ -54,8 +59,10 @@ class AppState {
       bool isLoadingFollowPiece,
       String selectedCarId,
       String mostUsedCarId,
+      bool logged,
       Object selectedFollowedPiece,
       List piecesNeedingRepair,
+      bool allowNotification,
       bool createdFollowPiece}) {
     return new AppState(
         firebaseUser: firebaseUser ?? this.firebaseUser,
@@ -69,6 +76,8 @@ class AppState {
         mostUsedCarId: mostUsedCarId ?? this.mostUsedCarId,
         selectedFollowedPiece:
             selectedFollowedPiece ?? this.selectedFollowedPiece,
+        logged: logged ?? this.logged,
+        allowNotification: allowNotification ?? this.allowNotification,
         piecesNeedingRepair: piecesNeedingRepair ?? this.piecesNeedingRepair);
   }
 }

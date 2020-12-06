@@ -1,5 +1,7 @@
 import 'package:car_track/actions/actions.dart';
 import 'package:car_track/components/box_title.dart';
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +31,7 @@ class _FollowedPieceDetailsState extends State<FollowedPieceDetailsScreen> {
   _FollowedPieceDetailsState({this.itemId});
 
   final String itemId;
+  final NavigationService _navigationService = locator<NavigationService>();
 
   bool loading = true;
   bool getDetails = true;
@@ -67,9 +70,11 @@ class _FollowedPieceDetailsState extends State<FollowedPieceDetailsScreen> {
       }
 
       Future<void> unfollowPiece() {
-        return followedPieces.doc(itemId).delete().then((value) {
-          Navigator.pop(context);
-        }).catchError((error) => print("error: $error"));
+        return followedPieces
+            .doc(itemId)
+            .delete()
+            .then((value) => _navigationService.goBack())
+            .catchError((error) => print("error: $error"));
       }
 
       if (getDetails) {
@@ -212,9 +217,7 @@ class _FollowedPieceDetailsState extends State<FollowedPieceDetailsScreen> {
                         size: 32.0,
                         semanticLabel: 'Voltar',
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => _navigationService.goBack(),
                     ),
                   ),
                 ],
@@ -225,7 +228,7 @@ class _FollowedPieceDetailsState extends State<FollowedPieceDetailsScreen> {
       return new FollowedPieceDetailsViewModel(
           user: store.state.firebaseUser,
           getPiecesNeedingRepair: () =>
-              store.dispatch(new GetPiecesNeedingRepairAction()),
+              store.dispatch(new GetMostUsedCarAction()),
           piecesNeedingRepair: store.state.piecesNeedingRepair);
     });
   }

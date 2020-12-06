@@ -3,7 +3,7 @@ import 'package:car_track/actions/actions.dart';
 
 AppState stateReducer(AppState state, action) {
   if (action is UserLoadedAction) {
-    return state.copyWith(firebaseUser: action.firebaseUser);
+    return state.copyWith(firebaseUser: action.firebaseUser, logged: true);
   }
 
   if (action is UpdateNewCarAction) {
@@ -49,6 +49,14 @@ AppState stateReducer(AppState state, action) {
 
   if (action is MostUsedCarIdAction) {
     return state.copyWith(mostUsedCarId: action.mostUsedCarId);
+  }
+
+  if (action is RemoveUserAction) {
+    return state.copyWith(logged: false);
+  }
+
+  if (action is SetAllowNotificationAction) {
+    return state.copyWith(allowNotification: action.allowNotification);
   }
 
   return state;

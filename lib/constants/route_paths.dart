@@ -1,0 +1,13 @@
+const String LoginRoute = 'Login';
+const String HomeRoute = 'Home';
+const String NewCar1Route = 'NewCar1Route';
+const String NewCar2Route = 'NewCar2Route';
+const String NewCar3Route = 'NewCar3Route';
+const String NewCarDetailsRoute = 'NewCarDetailsRoute';
+const String NewCarCongratsRoute = 'NewCarCongratsRoute';
+const String CarDetailsRoute = 'CarDetailsRoute';
+const String PieceDetailsRoute = 'PieceDetailsRoute';
+const String FollowedPieceDetailsRoute = 'FollowedPieceDetailsRoute';
+const String SettingsRoute = 'SettingsRoute';
+const String FollowPieceRoute = 'FollowPieceRoute';
+const String FollowPieceCongratsRoute = 'FollowPiceCongratsRoute';

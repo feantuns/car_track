@@ -1,5 +1,8 @@
 import 'package:car_track/models/car.dart';
 import 'package:car_track/actions/actions.dart';
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:car_track/models/app_state.dart';
@@ -13,6 +16,7 @@ class NewCar3ViewModel {
 }
 
 class NewCar3Screen extends StatelessWidget {
+  final NavigationService _navigationService = locator<NavigationService>();
   String value = "";
 
   @override
@@ -29,22 +33,19 @@ class NewCar3Screen extends StatelessWidget {
                   top: 32,
                   left: 8,
                   child: IconButton(
-                    icon: Icon(
-                      Icons.chevron_left,
-                      color: Colors.grey[700],
-                      size: 32.0,
-                      semanticLabel: 'Voltar',
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
+                      icon: Icon(
+                        Icons.chevron_left,
+                        color: Colors.grey[700],
+                        size: 32.0,
+                        semanticLabel: 'Voltar',
+                      ),
+                      onPressed: () => _navigationService.goBack()),
                 ),
                 Container(
                     padding: EdgeInsets.fromLTRB(16, 80, 0, 16),
                     child: Text('Como quer chamar seu carro?',
                         style: TextStyle(
-                            fontSize: 45,
+                            fontSize: 40,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey[700]))),
                 Column(
@@ -106,7 +107,7 @@ class NewCar3Screen extends StatelessWidget {
       return new NewCar3ViewModel(
           updateNewCar: (Car novoCarro) {
             store.dispatch(new UpdateNewCarAction(novoCarro));
-            Navigator.pushNamed(context, '/new-car-details');
+            _navigationService.navigateTo(routes.NewCarDetailsRoute);
           },
           novoCarro: store.state.novoCarro);
     });

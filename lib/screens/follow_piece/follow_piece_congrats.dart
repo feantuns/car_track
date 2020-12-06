@@ -1,20 +1,21 @@
 import 'package:car_track/actions/actions.dart';
 import 'package:car_track/models/app_state.dart';
-import 'package:car_track/screens/car_details.dart';
+import 'package:car_track/constants/route_paths.dart' as routes;
+import 'package:car_track/locator.dart';
+import 'package:car_track/services/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 @immutable
 class FollowPieceCongratsViewModel {
   final Function resetState;
+  final bool allowNotification;
 
-  FollowPieceCongratsViewModel({this.resetState});
+  FollowPieceCongratsViewModel({this.resetState, this.allowNotification});
 }
 
 class FollowPieceCongratsScreen extends StatelessWidget {
-  FollowPieceCongratsScreen({Key key, this.carId}) : super(key: key);
-
-  final String carId;
+  final NavigationService _navigationService = locator<NavigationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -39,24 +40,28 @@ class FollowPieceCongratsScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'Agora fique de olho nas notificações',
+                    viewModel.allowNotification
+                        ? 'Agora fique de olho nas notificações'
+                        : 'Agora você está acompanhando esta peça',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.normal,
                         color: Colors.black54),
                   ),
-                  SizedBox(height: 60),
+                  SizedBox(height: 50),
                   Center(
                       child: Image(image: AssetImage("assets/congrats.png"))),
                   SizedBox(height: 40),
                   Text(
-                    'Vamos te avisar quando você precisar dar manutenção para esta peça',
+                    viewModel.allowNotification
+                        ? 'Vamos te avisar quando esta peça precisar de manutenção'
+                        : 'Acompanhe seu status na tela de detalhes do veículo',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.normal,
                         color: Colors.black54),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: 10),
                   Center(
                     child: RaisedButton(
                         onPressed: () {
@@ -75,14 +80,12 @@ class FollowPieceCongratsScreen extends StatelessWidget {
             )),
       ));
     }, converter: (store) {
-      return new FollowPieceCongratsViewModel(resetState: () {
-        store.dispatch(new ResetStateFollowPieceAction());
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CarDetailsScreen()),
-        );
-      });
+      return new FollowPieceCongratsViewModel(
+          resetState: () {
+            store.dispatch(new ResetStateFollowPieceAction());
+            _navigationService.navigateTo(routes.CarDetailsRoute);
+          },
+          allowNotification: store.state.allowNotification);
     });
   }
 }

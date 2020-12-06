@@ -5,8 +5,8 @@ class BoxTitle extends StatelessWidget {
       {Key key,
       this.title,
       this.subtitle,
-      this.titleSize = 26,
-      this.subtitleSize = 26})
+      this.titleSize = 22,
+      this.subtitleSize = 22})
       : super(key: key);
 
   final String title;
